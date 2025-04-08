@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="index.css">
+  <title>Calcul Montant Serveurs</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <h1>Montant Serveurs par Projet</h1>
+
+  <label>Importer un fichier Excel :</label>
+  <input type="file" id="fileInput" />
+  <br><br>
+
+  <label for="projetSelect">Choisissez un projet :</label>
+  <select id="projetSelect">
+    <option value="">-- Sélectionner un projet --</option>
+  </select>
+  <br><br>
+
+  <label for="budgetInput">Montant total (€) :</label>
+  <input type="number" id="budgetInput" value="50000" />
+  <br><br>
+
+  <button id="calculerBtn">Calculer</button>
+
+  <button id="pdfBtn">Télécharger la facture PDF</button>
+
+  <h2>Résultats</h2>
+  <pre id="resultat"></pre>
+
+  <script src="index.js"></script>
+</body>
+</html>
