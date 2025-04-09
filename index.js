@@ -106,44 +106,69 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 const today = new Date();
 
 document.getElementById('pdfBtn').addEventListener('click', function () {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-      const budget = document.getElementById('budgetInput').value;
-      const resultText = document.getElementById('resultat').textContent;
+    if (tousLesServeurs.length === 0) {
+        alert("Aucun serveur à exporter.");
+        return;
+    }
 
-      if (!resultText.trim()) {
-          alert("Aucun résultat à exporter.");
-          return;
-      }
+    const budget = parseFloat(document.getElementById('budgetInput').value);
+    if (isNaN(budget) || budget <= 0) {
+        alert("Veuillez entrer un montant valide.");
+        return;
+    }
 
-      // Marge et hauteur de ligne
-      const marginLeft = 20;
-      let currentY = 20;
-      const lineHeight = 7;
-      const maxHeight = 280; // Limite avant saut de page
+    // Appliquer le calcul
+    attribuerBudget(tousLesServeurs, budget);
 
-      doc.setFontSize(16);
-      doc.text("Facturation", marginLeft, currentY);
-      currentY += lineHeight + 2;
+    let currentY = 20;
+    doc.setFontSize(16);
+    doc.text("Facturation des Serveurs", 105, currentY, { align: 'center' });
+    currentY += 10;
+    doc.setFontSize(12);
+    doc.text(`Montant total global : ${budget.toFixed(2)} €`, 105, currentY, { align: 'center' });
+    currentY += 10;
 
-      doc.setFontSize(12);
-      doc.text(`Montant total : ${budget} €`, marginLeft, currentY);
-      currentY += lineHeight * 2;
+    const groupedByProjet = {};
 
-      doc.text("Détail des serveurs :", marginLeft, currentY);
-      currentY += lineHeight;
+    tousLesServeurs.forEach(s => {
+        if (!groupedByProjet[s.projet]) {
+            groupedByProjet[s.projet] = {
+                total: 0,
+                serveurs: []
+            };
+        }
+        groupedByProjet[s.projet].serveurs.push(s);
+        groupedByProjet[s.projet].total += s.budgetAttribue;
+    });
 
-      const lines = resultText.split('\n');
+    Object.entries(groupedByProjet).forEach(([projet, data], index) => {
+        if (index > 0) doc.addPage();
+        doc.setFontSize(14);
+        doc.text(`Projet : ${projet}`, 14, 20);
+        doc.setFontSize(12);
+        doc.text(`Total pour ce projet : ${data.total.toFixed(2)} €`, 14, 28);
 
-      lines.forEach((line, i) => {
-          if (currentY > maxHeight) {
-          doc.addPage();
-          currentY = 20;
-          }
-          doc.text(line, marginLeft, currentY);
-          currentY += lineHeight;
-      });
+        const tableData = data.serveurs.map(s => [
+            s.nom,
+            s.espaceDisque + ' Go',
+            s.ram + ' Go',
+            s.cœurs,
+            s.budgetAttribue.toFixed(2) + ' €'
+        ]);
 
-      doc.save(`facture_${today.toISOString().split('T')[0]}.pdf`);
+        doc.autoTable({
+            startY: 35,
+            head: [['Nom', 'Disque', 'RAM', 'CPU', 'Montant']],
+            body: tableData,
+            theme: 'grid',
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [100, 100, 255] },
+            margin: { left: 14, right: 14 }
+        });
+    });
+
+    doc.save(`facture_${today.toISOString().split('T')[0]}.pdf`);
 });
