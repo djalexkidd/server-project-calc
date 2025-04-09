@@ -123,14 +123,6 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
     // Appliquer le calcul
     attribuerBudget(tousLesServeurs, budget);
 
-    let currentY = 20;
-    doc.setFontSize(16);
-    doc.text("Facturation des Serveurs", 105, currentY, { align: 'center' });
-    currentY += 10;
-    doc.setFontSize(12);
-    doc.text(`Montant total global : ${budget.toFixed(2)} €`, 105, currentY, { align: 'center' });
-    currentY += 10;
-
     const groupedByProjet = {};
 
     tousLesServeurs.forEach(s => {
@@ -145,29 +137,46 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
     });
 
     Object.entries(groupedByProjet).forEach(([projet, data], index) => {
-        if (index > 0) doc.addPage();
-        doc.setFontSize(14);
-        doc.text(`Projet : ${projet}`, 14, 20);
-        doc.setFontSize(12);
-        doc.text(`Total pour ce projet : ${data.total.toFixed(2)} €`, 14, 28);
-
-        const tableData = data.serveurs.map(s => [
-            s.nom,
-            s.espaceDisque + ' Go',
-            s.ram + ' Go',
-            s.cœurs,
-            s.budgetAttribue.toFixed(2) + ' €'
-        ]);
-
-        doc.autoTable({
-            startY: 35,
-            head: [['Nom', 'Disque', 'RAM', 'CPU', 'Montant']],
-            body: tableData,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            headStyles: { fillColor: [100, 100, 255] },
-            margin: { left: 14, right: 14 }
-        });
+      let currentY = 20;
+  
+      if (index === 0) {
+          // Première page : titre + budget global
+          doc.setFontSize(16);
+          doc.text("Facturation", 105, currentY, { align: 'center' });
+          currentY += 10;
+          doc.setFontSize(12);
+          doc.text(`Montant total global : ${budget.toFixed(2)} €`, 105, currentY, { align: 'center' });
+          currentY += 20; // Décalage uniquement sur la première page
+      } else {
+          doc.addPage();
+          currentY = 20; // Pas de décalage pour les autres pages
+      }
+  
+      // Titre du projet et total projet
+      doc.setFontSize(14);
+      doc.text(`Projet : ${projet}`, 14, currentY);
+      currentY += 8;
+      doc.setFontSize(12);
+      doc.text(`Total pour ce projet : ${data.total.toFixed(2)} €`, 14, currentY);
+      currentY += 7;
+  
+      const tableData = data.serveurs.map(s => [
+          s.nom,
+          s.espaceDisque + ' Go',
+          s.ram + ' Go',
+          s.cœurs,
+          s.budgetAttribue.toFixed(2) + ' €'
+      ]);
+  
+      doc.autoTable({
+          startY: currentY,
+          head: [['Nom', 'Disque', 'RAM', 'CPU', 'Montant']],
+          body: tableData,
+          theme: 'grid',
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [100, 100, 255] },
+          margin: { left: 14, right: 14 }
+      });
     });
 
     doc.save(`facture_${today.toISOString().split('T')[0]}.pdf`);
