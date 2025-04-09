@@ -28,7 +28,7 @@ function attribuerBudget(serveurs, budgetTotal) {
     resultatEl.textContent = ''; // Reset affichage
 
     serveurs.forEach((serveur, index) => {
-      resultatEl.textContent += `Serveur ${index + 1} (Projet: ${serveur.projet})\n`;
+      resultatEl.textContent += `Serveur : ${serveur.nom} (Projet : ${serveur.projet})\n`;
       resultatEl.textContent += `  Espace disque: ${serveur.espaceDisque} Go\n`;
       resultatEl.textContent += `  RAM: ${serveur.ram} Go\n`;
       resultatEl.textContent += `  Cœurs CPU: ${serveur.cœurs}\n`;
@@ -48,6 +48,7 @@ function traiterFichier(fichier) {
       const jsonData = XLSX.utils.sheet_to_json(sheet);
 
       tousLesServeurs = jsonData.map((row) => ({
+        nom: row['Nom'],
         projet: row['Projet'],
         espaceDisque: parseFloat(row['Espace utilisé'].replace(' Go', '').replace(',', '.')),
         ram: parseFloat(row['Taille mémoire']),
