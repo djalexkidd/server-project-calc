@@ -14,26 +14,49 @@ function calculerPuissance(espaceDisque, ram, coeurs) {
 }
 
 function attribuerBudget(serveurs, budgetTotal) {
-    let totalPuissance = 0;
+  let totalPuissance = 0;
 
-    const puissances = serveurs.map(serveur => {
+  const puissances = serveurs.map(serveur => {
       const puissance = calculerPuissance(serveur.espaceDisque, serveur.ram, serveur.cœurs);
       totalPuissance += puissance;
       return puissance;
-    });
+  });
 
-    const budgets = puissances.map(puissance => (puissance / totalPuissance) * budgetTotal);
+  const budgets = puissances.map(puissance => (puissance / totalPuissance) * budgetTotal);
 
-    const resultatEl = document.getElementById('resultat');
-    resultatEl.textContent = ''; // Reset affichage
+  // Ajouter le budget à chaque serveur
+  serveurs.forEach((serveur, index) => {
+      serveur.budgetAttribue = budgets[index];
+  });
 
-    serveurs.forEach((serveur, index) => {
-      resultatEl.textContent += `Serveur : ${serveur.nom} (Projet : ${serveur.projet})\n`;
-      resultatEl.textContent += `  Espace disque: ${serveur.espaceDisque} Go\n`;
-      resultatEl.textContent += `  RAM: ${serveur.ram} Go\n`;
-      resultatEl.textContent += `  Cœurs CPU: ${serveur.cœurs}\n`;
-      resultatEl.textContent += `  Montant attribué: ${budgets[index].toFixed(2)} €\n\n`;
-    });
+  // Regrouper les serveurs par projet
+  const projets = {};
+  serveurs.forEach((serveur) => {
+      if (!projets[serveur.projet]) {
+          projets[serveur.projet] = {
+              total: 0,
+              serveurs: []
+          };
+      }
+      projets[serveur.projet].total += serveur.budgetAttribue;
+      projets[serveur.projet].serveurs.push(serveur);
+  });
+
+  // Affichage
+  const resultatEl = document.getElementById('resultat');
+  resultatEl.textContent = '';
+
+  for (const [nomProjet, data] of Object.entries(projets)) {
+      resultatEl.textContent += `=== Projet : ${nomProjet} ===\n`;
+      resultatEl.textContent += `Montant : ${data.total.toFixed(2)} €\n\n`;
+      data.serveurs.forEach(serveur => {
+          resultatEl.textContent += `Serveur : ${serveur.nom}\n`;
+          resultatEl.textContent += `  Espace disque : ${serveur.espaceDisque} Go\n`;
+          resultatEl.textContent += `  RAM : ${serveur.ram} Go\n`;
+          resultatEl.textContent += `  Cœurs CPU : ${serveur.cœurs}\n`;
+          resultatEl.textContent += `  Montant attribué : ${serveur.budgetAttribue.toFixed(2)} €\n\n`;
+      });
+  }
 }
 
 let tousLesServeurs = [];
@@ -80,11 +103,12 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     }
 });
 
+const today = new Date();
+
 document.getElementById('pdfBtn').addEventListener('click', function () {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      const projet = "Tous les projets";
       const budget = document.getElementById('budgetInput').value;
       const resultText = document.getElementById('resultat').textContent;
 
@@ -100,12 +124,10 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
       const maxHeight = 280; // Limite avant saut de page
 
       doc.setFontSize(16);
-      doc.text("Facturation - Serveurs Projet", marginLeft, currentY);
+      doc.text("Facturation", marginLeft, currentY);
       currentY += lineHeight + 2;
 
       doc.setFontSize(12);
-      doc.text(`Projets concernés : ${projet}`, marginLeft, currentY);
-      currentY += lineHeight;
       doc.text(`Montant total : ${budget} €`, marginLeft, currentY);
       currentY += lineHeight * 2;
 
@@ -123,5 +145,5 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
           currentY += lineHeight;
       });
 
-      doc.save(`facture_${projet}.pdf`);
+      doc.save(`facture_${today.toISOString().split('T')[0]}.pdf`);
 });
