@@ -53,37 +53,23 @@ function traiterFichier(fichier) {
         ram: parseFloat(row['Taille mémoire']),
         cœurs: parseInt(row['CPU'])
       }));
-
-      // Remplir la liste des projets uniques
-      const projets = [...new Set(tousLesServeurs.map(s => s.projet))];
-      const select = document.getElementById('projetSelect');
-      select.innerHTML = `<option value="">-- Sélectionner un projet --</option>` +
-                         projets.map(p => `<option value="${p}">${p}</option>`).join('');
     };
     reader.readAsBinaryString(fichier);
 }
 
 document.getElementById('calculerBtn').addEventListener('click', function() {
-    const projetChoisi = document.getElementById('projetSelect').value;
-    const budget = parseFloat(document.getElementById('budgetInput').value);
+  const budget = parseFloat(document.getElementById('budgetInput').value);
 
-    if (!projetChoisi) {
-      alert("Veuillez sélectionner un projet.");
-      return;
-    }
+  if (isNaN(budget) || budget <= 0) {
+    alert("Veuillez entrer un budget valide.");
+    return;
+  }
 
-    if (isNaN(budget) || budget <= 0) {
-      alert("Veuillez entrer un budget valide.");
-      return;
-    }
-
-    const serveursFiltres = tousLesServeurs.filter(s => s.projet === projetChoisi);
-
-    if (serveursFiltres.length > 0) {
-      attribuerBudget(serveursFiltres, budget);
-    } else {
-      document.getElementById('resultat').textContent = "Aucun serveur pour ce projet.";
-    }
+  if (tousLesServeurs.length > 0) {
+    attribuerBudget(tousLesServeurs, budget);
+  } else {
+    document.getElementById('resultat').textContent = "Aucun serveur trouvé.";
+  }
 });
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -97,7 +83,7 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      const projet = document.getElementById('projetSelect').value;
+      const projet = "Tous les projets";
       const budget = document.getElementById('budgetInput').value;
       const resultText = document.getElementById('resultat').textContent;
 
@@ -117,7 +103,7 @@ document.getElementById('pdfBtn').addEventListener('click', function () {
       currentY += lineHeight + 2;
 
       doc.setFontSize(12);
-      doc.text(`Projet : ${projet}`, marginLeft, currentY);
+      doc.text(`Projets concernés : ${projet}`, marginLeft, currentY);
       currentY += lineHeight;
       doc.text(`Montant total : ${budget} €`, marginLeft, currentY);
       currentY += lineHeight * 2;
