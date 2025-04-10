@@ -1,0 +1,18 @@
+services:
+  server-project-calc:
+    image: ghcr.io/djalexkidd/server-project-calc:latest
+    container_name: server-project-calc
+    restart: always
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-project-calc.rule=Host(`calc.change.me`)"
+      - "traefik.http.routers.server-project-calc.entrypoints=websecure"
+      - "traefik.http.routers.server-project-calc.tls=true"
+      - "traefik.http.services.server-project-calc.loadbalancer.server.port=80"
+      - "traefik.http.routers.server-project-calc.tls.certresolver=myresolver"
+
+networks:
+  proxy:
+    name: proxy
